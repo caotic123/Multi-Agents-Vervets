@@ -12,10 +12,12 @@ data Agents = Agent_M Monkey | Agent_P Predator deriving Show
 data Floor = Floor Int (Maybe Agents) deriving Show
 data Floor_map = Floor_map (Matrix Floor) [Pos] deriving Show
 
-size_of_area = 23
-amoung_of_agent_monkey = 3
-predators = 20
+size_of_area = 10
+amoung_of_agent_monkey = 2
+predators = 4
 area_length = 6
+len_of_table_symb = 10
+len_of_word_lex = 6
 
 rand__d :: (Int, Int) -> IO Int
 rand__d i = do
@@ -35,19 +37,15 @@ generate_ran_lex :: [Int] -> [Char]
 generate_ran_lex  [] = []
 generate_ran_lex  k = (chr (head k) : generate_ran_lex (tail k))
 
-monkey_lex = do
-  rand_lis <- fx 10 (97, 122)
-  return (generate_ran_lex  rand_lis)
-
 lex__s :: Int -> IO [String]
-lex__s a = do {d <- monkey_lex; if a <= 0 then return []; else do {f <- lex__s (a - 1); return (d : f);}; }
+lex__s a = do {rand_lis <- fx len_of_word_lex (97, 122); if a <= 0 then return []; else do {f <- lex__s (a - 1); return ((generate_ran_lex rand_lis) : f);}; }
 
-monkey_generate_lex :: [String] -> Symb_lex
-monkey_generate_lex lex = Symb_lex lex lex lex
+monkey_generate_lex :: [String] -> [String] -> [String] -> Symb_lex
+monkey_generate_lex lex lex_ lex__ = Symb_lex lex lex_ lex__
 
-monkey__l :: Int -> Symb_lex -> [Monkey]
-monkey__l 0 monkey_lex = []
-monkey__l x___ monkey_lex = (Monkey x___ monkey_lex (Pos 0 0)) : monkey__l (x___ - 1) monkey_lex
+monkey__l :: Int -> [[String]] -> [[String]] -> [[String]] -> [Monkey]
+monkey__l 0 xs xt xe = []
+monkey__l d xs xt xe = (Monkey d (monkey_generate_lex (head xs) (head xt) (head xe)) (Pos 0 0)) : (monkey__l (d - 1) (tail xs) (tail xt) (tail xe))
 
 pred__l :: Int -> [Int] -> [Predator]
 pred__l 0 p = []
@@ -67,8 +65,10 @@ pred__ k m_ pp = setElem (Floor 2 (Just (Agent_P m_))) pp k
 floor_attr :: Matrix Floor -> (Int, Int) -> Int
 floor_attr f_ p = get_att (f_ ! p)
 get_att (Floor s d) = s
+get_Pos (Monkey s k z) = z
 get_maybe_agents :: Floor -> Maybe Agents
 get_maybe_agents(Floor s d) = d
+getPredatorType(Predator x d) = x
 get__ :: Agents -> Monkey
 get__(Agent_M x) = x
 get___ :: Agents -> Predator
@@ -145,37 +145,70 @@ lex_eq :: [String] -> [String] -> [Int]
 lex_eq [] [] = []
 lex_eq lex_ n = (lex_t (head lex_) (head  n)) : (lex_eq (tail lex_) (tail n))
 
-get_lex k = (elemIndex (foldl1' max k) k)
-
+get_lex k = case (elemIndex (foldl1' max k) k) of Just x -> x
+    
 add_completixy_lex :: String -> String -> String
-add_completixy_lex lex_ lex__ = (head lex__) : (tail lex_)
+add_completixy_lex lex_ lex__ = (last lex__) : (init lex_)
 
 lis_index :: Int -> [a] -> a
-lis_index 1 n = (head n)
+lis_index 0 n = (head n) -- REMEMBER THIS
 lis_index y n = lis_index (y -1) (tail n) 
 
 lexical__v :: [String] -> [String] -> Int -> Int -> [String]
-lexical__v m k i i_ = setAt i (add_completixy_lex (lis_index i m) (lis_index i_ k )) m
+lexical__v m k i i_ = setAt i (add_completixy_lex (lis_index i m) (lis_index i_ k)) m
 
-check_area :: Matrix Floor -> Monkey -> Pos -> [Predator] -> Matrix Floor
-check_area f_ x k [] = f_
-check_area f_ x k p =  f_
+add_lex :: Symb_lex -> Symb_lex -> Int -> Symb_lex
+add_lex sl sl_ p = case p of
+                             1 ->  (Symb_lex (lexical__v (snake sl) (snake sl_) (get_lex (snake sl))  (get_lex (snake sl_)) ) (tiger sl) (eagle sl))
+                             2 ->  (Symb_lex (snake sl) (lexical__v (tiger sl) (tiger sl_) (get_lex (tiger sl)) (get_lex (tiger sl_))) (eagle sl))
+                             3 ->  (Symb_lex (snake sl) (tiger sl) (lexical__v (eagle sl) (eagle sl_) (get_lex (eagle sl)) (get_lex (eagle sl_))))
 
-interact__ :: Floor_map -> Floor_map
-interact__ k
-                         | (length (getPos_Agents k)) <= 0 = k
-                         | otherwise = Floor_map (check_area (getFloor k) (getMonkeyByPos (getFloor k) (head (getPos_Agents k))) (head (getPos_Agents k)) (getPredator k (head (getPos_Agents k)) area_length)) (tail (getPos_Agents k))
+alert__monkey :: Monkey -> Monkey -> Predator -> Monkey
+alert__monkey x k p = (Monkey (id_ x) (add_lex (lex_ x) (lex_ k) (getPredatorType p)) (pos x))
+
+alert_in_area :: Matrix Floor -> Monkey -> [Monkey] -> Predator -> Matrix Floor
+alert_in_area f x [] z = f
+alert_in_area f x y z = monkey___ (alert_in_area f x (tail y) z) (alert__monkey (head y) x z) (pos_to_tuple $ get_Pos (head y))
+
+check_area :: Floor_map -> Monkey -> [Predator] -> Floor_map
+check_area f_ x [] = (Floor_map (getFloor f_) (getPos_Agents f_))
+check_area f_ x p = (Floor_map (alert_in_area (getFloor (check_area f_ x (tail p))) x (getMonkey f_ (get_Pos x) area_length) (head p)) (getPos_Agents f_))
+
+interact__ :: Floor_map -> [Monkey] -> Floor_map
+interact__ k m
+                         | (length m) <= 0 = k
+                         | otherwise = check_area k (head m) (getPredator k (get_Pos (head m)) area_length)
+
+lis_lex :: Int -> IO [[String]]
+lis_lex 0 = return []
+lis_lex n = do
+        lex__ <- lex__s len_of_table_symb
+        f <- lis_lex (n - 1)
+        return (lex__ : f)
+
+f :: Int -> Symb_lex -> Symb_lex-> Symb_lex
+f 0 x y = x
+f n x y = add_lex (f (n - 1 ) x y) y 1
+
 main :: IO ()
 main = do
+   let lis = ["ola", "bom", "dia", "amigo"]
+   let lis_ = ["ola", "seja", "bem", "vindo"]
    lis_posx <- fx amoung_of_agent_monkey (1, size_of_area)
    lis_posy <- fx amoung_of_agent_monkey (1, size_of_area)
    lis_p <- fx predators (1, 3)
-   x <- monkey_lex
-   lex__ <- lex__s amoung_of_agent_monkey
-   let monkeys = monkey__l amoung_of_agent_monkey (monkey_generate_lex lex__)
+   lex__snake <- lis_lex amoung_of_agent_monkey
+   lex__tiger <- lis_lex amoung_of_agent_monkey
+   lex__eagle <- lis_lex amoung_of_agent_monkey
+   let monkeys = monkey__l amoung_of_agent_monkey lex__snake lex__tiger lex__eagle
    let predator_ = pred__l predators lis_p
    let map_floor = map__floor__
    map_env <- put_in_map_floor map_floor monkeys
    map_env <- putP_in_map_floor map_env predator_
-   let t = [1, 2, 32, 5]
-   print $ lis_index 3 t
+   let d = interact__ map_env 
+   print (lex_ (head monkeys))
+   putStr "\n"
+   print (lex_ (head (tail monkeys)))
+   putStr "\n"
+   let d = f 100 (Symb_lex ["za", "ba"] ["a"] ["b"]) (Symb_lex ["zz"] ["zc"] ["b"])
+   print d
