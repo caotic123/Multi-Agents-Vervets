@@ -1,6 +1,6 @@
 # Multi-Agents-Vervets
 
-Monk is a efficient functional implementation of multi-agents lexical convergence based in this project https://github.com/caotic123/Intelligent-Monkeys using the following paper https://pt.scribd.com/document/382793399/Msc-Angelo by Angelo Conrado - Universidade Estudal de Campinas(Campinas State University), however, the goal of the project is a  lexical learning(and patterns of this....)
+Monk is a efficient functional implementation of multi-agents lexical convergence wrote in haskell based in this project https://github.com/caotic123/Intelligent-Monkeys using the following paper https://pt.scribd.com/document/382793399/Msc-Angelo by Angelo Conrado - Universidade Estudal de Campinas(Campinas State University), however, the goal of the project is a  lexical learning(and patterns of this....)
 
 # Abstraction
 
