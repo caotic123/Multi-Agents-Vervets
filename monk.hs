@@ -278,7 +278,6 @@ print_symb_lex m k = do
                    putStrLn ""
                    print_symb_lex (tail m) (tail k) 
 
-
 main :: IO ()
 main = do
     env <- ai 10000
