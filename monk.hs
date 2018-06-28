@@ -13,7 +13,7 @@ data Floor = Floor Int (Maybe Agents) deriving Show
 data Floor_map = Floor_map (Matrix Floor) [Pos] deriving Show
 
 size_of_area = 40
-amoung_of_agent_monkey = 10
+amoung_of_agent_monkey = 3
 predators = 30
 area_length = 4
 len_of_table_symb = 10
@@ -170,8 +170,8 @@ lexical__v m k i i_ = setAt i (add_completixy_lex (lis_index i m) (lis_index i_ 
 add_lex :: Symb_lex -> Symb_lex -> Int -> Symb_lex
 add_lex sl sl_ p = case p of
                              1 ->  (Symb_lex (lexical__v (snake sl) (snake sl_) (get_lex (lex_eq (snake sl) (snake sl_)))  (get_lex (lex_eq (snake sl_) (snake sl)))) (tiger sl) (eagle sl))
-                             2 ->  (Symb_lex (snake sl) (lexical__v (tiger sl) (tiger sl_) (get_lex (tiger sl)) (get_lex (tiger sl_))) (eagle sl))
-                             3 ->  (Symb_lex (snake sl) (tiger sl) (lexical__v (eagle sl) (eagle sl_) (get_lex (eagle sl)) (get_lex (eagle sl_))))
+                             2 ->  (Symb_lex (snake sl) (lexical__v (tiger sl) (tiger sl_) (get_lex (lex_eq (tiger sl) (tiger sl_))) (get_lex (lex_eq (tiger sl_) (tiger sl)))) (eagle sl))
+                             3 ->  (Symb_lex (snake sl) (tiger sl) (lexical__v (eagle sl) (eagle sl_) (get_lex (lex_eq (eagle sl) (eagle sl_))) (get_lex (lex_eq (eagle sl_) (eagle sl)))))
 
 alert__monkey :: Monkey -> Monkey -> Predator -> Monkey
 alert__monkey x k p = (Monkey (id_ x) (add_lex (lex_ x) (lex_ k) (getPredatorType p)) (pos x))
@@ -267,10 +267,17 @@ print_symb_lex [] [] = do
                     putStrLn ""
 
 print_symb_lex m k = do
-                   putStr "Snake Lex Monkey "
+                   putStr "Monkey "
                    print (id_ (head m))
-                   print_sym (snake (lex_ (head m))) (snake (lex_ (head k)))
+                   putStr "Snake Lex"
+                   print_sym (snake (lex_ (head m))) (snake (lex_ (head k))) 
+                   putStr "Tiger Lex Monkey "
+                   print_sym (tiger (lex_ (head m))) (tiger (lex_ (head k)))
+                   putStr "Eagle Lex Monkey "
+                   print_sym (eagle (lex_ (head m))) (eagle (lex_ (head k)))
+                   putStrLn ""
                    print_symb_lex (tail m) (tail k) 
+
 
 main :: IO ()
 main = do
