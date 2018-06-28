@@ -6,7 +6,7 @@ Monk is a efficient functional implementation of multi-agents lexical convergenc
 
 Vertets Monkeys are animals that can communicate throught of screams(alert), hear this(hearing) and by final memorizing for identify preys, this is only possible if the "agents"(monkeys) uses a type of comunication and interact with each one.
 
-# Pratical
+# Practical
 ```
 - - - - - - - - -
 - - M1 - - M2 - P
