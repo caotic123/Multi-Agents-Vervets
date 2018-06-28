@@ -156,7 +156,7 @@ lex_eq [] [] = []
 lex_eq lex_ n = (lex_t (head lex_) (head  n)) : (lex_eq (tail lex_) (tail n))
 
 get_lex k = case (elemIndex (foldl1' max k) k) of Just x -> x
-    
+
 add_completixy_lex :: String -> String -> String
 add_completixy_lex lex_ lex__ = (last lex__) : (init lex_)
 
@@ -169,7 +169,7 @@ lexical__v m k i i_ = setAt i (add_completixy_lex (lis_index i m) (lis_index i_ 
 
 add_lex :: Symb_lex -> Symb_lex -> Int -> Symb_lex
 add_lex sl sl_ p = case p of
-                             1 ->  (Symb_lex (lexical__v (snake sl) (snake sl_) (get_lex (snake sl))  (get_lex (snake sl_)) ) (tiger sl) (eagle sl))
+                             1 ->  (Symb_lex (lexical__v (snake sl) (snake sl_) (get_lex (lex_eq (snake sl) (snake sl_)))  (get_lex (lex_eq (snake sl_) (snake sl)))) (tiger sl) (eagle sl))
                              2 ->  (Symb_lex (snake sl) (lexical__v (tiger sl) (tiger sl_) (get_lex (tiger sl)) (get_lex (tiger sl_))) (eagle sl))
                              3 ->  (Symb_lex (snake sl) (tiger sl) (lexical__v (eagle sl) (eagle sl_) (get_lex (eagle sl)) (get_lex (eagle sl_))))
 
@@ -232,52 +232,48 @@ create_simp = do
                            lex__snake <- lis_lex amoung_of_agent_monkey
                            lex__tiger <- lis_lex amoung_of_agent_monkey
                            lex__eagle <- lis_lex amoung_of_agent_monkey
-                           let monkeys = monkey__l amoung_of_agent_monkey lex__snake lex__tiger lex__eagle
-                           let predator_ = pred__l predators lis_p
-                           map_env <- put_in_map_floor map_floor monkeys
-                           map_env <- putP_in_map_floor map_env predator_
-                           print_symb_lex (monkey_xs map_env)
+                           map_env <- put_in_map_floor map_floor (monkey__l amoung_of_agent_monkey lex__snake lex__tiger lex__eagle)
+                           map_env <- putP_in_map_floor map_env (pred__l predators lis_p)
                            return map_env
 
 
 simp ::  Floor_map -> IO Floor_map
 simp map_env = do
-                           let monk_ = monkey_xs map_env
-                           let pred_ = predator_xs map_env
-                           let d = interact__ map_env monk_
+ 
+                           let d = interact__ map_env (monkey_xs map_env)
                            let new_map = (Floor_map (getFloor d) [])
                            new_map <- update_monkey new_map (monkey_xs d)
-                           new_map <- update_predator new_map pred_
+                           new_map <- update_predator new_map (predator_xs map_env)
                            return new_map
 
-ai :: Int -> IO Floor_map
+ai :: Int -> IO [Floor_map]
 ai 0 = do
           map_env <- create_simp
-        --  print_symb_lex (monkey_xs map_env)
-          return map_env
+          return [map_env, map_env]
 ai n = do
          ai___ <- ai (n - 1)
-         simp__ <- simp ai___
-         return (simp__)
+         simp__ <- simp (head ai___)
+         return [simp__, (head (tail ai___))]
 
-print_symb_lex :: [Monkey] -> IO ()
-print_symb_lex [] = do
+print_sym :: [String] -> [String] -> IO ()
+print_sym [] [] = putStrLn ""
+print_sym n n_ = do
+                   putStr ("[" ++ ((head n) ++ " = " ++ (head n_)) ++ "]")
+                   putStr " "
+                   print_sym (tail n) (tail n_)
+
+print_symb_lex :: [Monkey] -> [Monkey] -> IO ()
+print_symb_lex [] [] = do
                     putStrLn ""
-                    putStr ""
 
-print_symb_lex m = do
-                   putStr "Monkey "
+print_symb_lex m k = do
+                   putStr "Snake Lex Monkey "
                    print (id_ (head m))
-                   print (snake (lex_ (head m)))
-                   putStrLn ""
-                   print (eagle (lex_ (head m)))
-                   putStrLn ""
-                   print (tiger (lex_ (head m)))
-                   putStrLn "" 
-                   print_symb_lex (tail m)
+                   print_sym (snake (lex_ (head m))) (snake (lex_ (head k)))
+                   print_symb_lex (tail m) (tail k) 
 
 main :: IO ()
 main = do
-    env <- ai 1000
-    print "------------------------------------ SIMPS -----------------------------"
-    print_symb_lex $ monkey_xs env
+    env <- ai 10000
+    print "------------------------------------  -----------------------------"
+    print_symb_lex (monkey_xs (head env)) (monkey_xs (head (tail env)))
