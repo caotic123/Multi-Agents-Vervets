@@ -14,10 +14,11 @@ Vertets Monkeys are animals that can communicate throught of screams(alert), hea
 - - - - - - - -
 M3 - - - - - - -
 ```
-
+```
 M1 = Lex Snake "AB" "AC"
 M2 = Lex Snake "DB" "DK"
 M3 = Lex Snake "SD" "AS"
+```
 
 Given a matrix (8x8) where M = Monkey and P = Prey(Maybe Tiger, Eagle or Snake) in this case let's consider P = Snake
 M2 is the area of vision of P(snake), then M2 will alert the M1 of P.
