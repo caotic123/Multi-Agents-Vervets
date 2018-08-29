@@ -2,6 +2,7 @@ import System.Random
 import Data.Char
 import Data.Matrix
 import Data.List
+import Data.Maybe
 import Data.List.Index
 
 data Pos = Pos{x :: Int, y :: Int} deriving Show
@@ -17,7 +18,7 @@ amoung_of_agent_monkey = 3
 predators = 30
 area_length = 4
 len_of_table_symb = 10
-len_of_word_lex = 6
+len_of_word_lex = 3
 
 rand__d :: (Int, Int) -> IO Int
 rand__d i = do
@@ -151,27 +152,36 @@ lex_t lex_ lex__ = (lex_s (head lex__) lex_) + (lex_t lex_ (tail lex__))
                    where lex_s str "" = 0
                          lex_s str xs = (lex_s str (tail xs)) + (if (head xs) == str then 1 else 0)
  
-lex_eq :: [String] -> [String] -> [Int]
-lex_eq [] [] = []
-lex_eq lex_ n = (lex_t (head lex_) (head  n)) : (lex_eq (tail lex_) (tail n))
+lex_eq :: String -> [String] -> [Int]
+lex_eq lex_ [] = []
+lex_eq lex_ n = (lex_t lex_ (head  n)) : (lex_eq lex_ (tail n))
 
 get_lex k = case (elemIndex (foldl1' max k) k) of Just x -> x
+
+lex__eq :: [String] -> [String] -> [(Int, Int)]
+lex__eq [] n = []
+lex__eq lex_ n = (get_lex_tuple (lex_eq (head lex_) n)) : (lex__eq (tail lex_) n)
+                   where get_lex_tuple xslex_ = ((get_lex xslex_), (lis_index (get_lex xslex_) xslex_))
+
+match__lex :: [(Int, Int)] -> Int
+match__lex k = fst (foldl1' max_lex k)
+                    where max_lex (x, y) (x_, y_) = if (y > y_) then (x, y) else (x_, y_)
 
 add_completixy_lex :: String -> String -> String
 add_completixy_lex lex_ lex__ = (last lex__) : (init lex_)
 
 lis_index :: Int -> [a] -> a
 lis_index 0 n = (head n) -- REMEMBER THIS
-lis_index y n = lis_index (y -1) (tail n) 
+lis_index y n = lis_index (y - 1) (tail n) 
 
 lexical__v :: [String] -> [String] -> Int -> Int -> [String]
-lexical__v m k i i_ = setAt i (add_completixy_lex (lis_index i m) (lis_index i_ k)) m
+lexical__v m k i_ i = setAt i (add_completixy_lex (lis_index i m) (lis_index i_ k)) m
 
 add_lex :: Symb_lex -> Symb_lex -> Int -> Symb_lex
 add_lex sl sl_ p = case p of
-                             1 ->  (Symb_lex (lexical__v (snake sl) (snake sl_) (get_lex (lex_eq (snake sl) (snake sl_)))  (get_lex (lex_eq (snake sl_) (snake sl)))) (tiger sl) (eagle sl))
-                             2 ->  (Symb_lex (snake sl) (lexical__v (tiger sl) (tiger sl_) (get_lex (lex_eq (tiger sl) (tiger sl_))) (get_lex (lex_eq (tiger sl_) (tiger sl)))) (eagle sl))
-                             3 ->  (Symb_lex (snake sl) (tiger sl) (lexical__v (eagle sl) (eagle sl_) (get_lex (lex_eq (eagle sl) (eagle sl_))) (get_lex (lex_eq (eagle sl_) (eagle sl)))))
+                             1 ->  (Symb_lex (lexical__v (snake sl) (snake sl_) (match__lex (lex__eq (snake sl) (snake sl_))) (match__lex (lex__eq (snake sl_) (snake sl)))) (tiger sl) (eagle sl))
+                             2 ->  (Symb_lex (snake sl) (lexical__v (tiger sl) (tiger sl_) (match__lex (lex__eq (tiger sl) (tiger sl_))) (match__lex (lex__eq (tiger sl_) (tiger sl)))) (eagle sl))
+                             3 ->  (Symb_lex (snake sl) (tiger sl) (lexical__v (eagle sl) (eagle sl_) (match__lex (lex__eq (eagle sl) (eagle sl_))) (match__lex (lex__eq (eagle sl_) (eagle sl)))))
 
 alert__monkey :: Monkey -> Monkey -> Predator -> Monkey
 alert__monkey x k p = (Monkey (id_ x) (add_lex (lex_ x) (lex_ k) (getPredatorType p)) (pos x))
